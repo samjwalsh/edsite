@@ -28,13 +28,6 @@ Allow us to take the hassle out of the claims process for you!
 
 Life can be hectic enough without the additional burden of making a claim when things go wrong. Where do you start? Who do you need to contact? What do you need to do? In extreme circumstances, where do you stay? Let us help sort it all out.
 
-## Recent CMS “Wins”
-
-- Flood Claims
-- Burglary Claim
-- Alternative Accommodation
-- Breach of Policy
-
 ## Services Overview
 
 - Full Claim Management
