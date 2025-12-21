@@ -17,6 +17,11 @@ We have links with specialist companies so that whether your claim requires a co
 Burglary Claims
 A burglary is often compounded by a Loss Adjuster, who will probe and dig into not only the circumstances of the claim, but also into your background.
 
+### Storm
+
+Storm Damage
+Storm damage can cause significant disruption to both residential and commercial properties. From roof damage caused by high winds to water ingress from heavy rainfall, the impact can be extensive.
+
 ### Subsidence
 
 Subsidence and Pyrite Claims

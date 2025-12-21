@@ -2,14 +2,14 @@ import Link from "next/link";
 
 export function Hero() {
   return (
-    <section className="relative right-1/2 left-1/2 isolate -mx-[50vw] -mt-[var(--cms-nav-h)] min-h-[30svh] w-screen py-16 text-white">
+    <section className="relative right-1/2 left-1/2 isolate -mx-[50vw] -mt-(--cms-nav-h) min-h-[30svh] w-screen py-16 text-white">
       <div
         className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/hero.jpg')" }}
       />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(135deg,var(--color-cms-peach-1),var(--color-cms-peach-2))] opacity-60" />
 
-      <div className="mx-auto flex max-w-[var(--content-width)] flex-col justify-center px-5 pt-[var(--cms-nav-h)]">
+      <div className="mx-auto flex max-w-(--content-width) flex-col justify-center px-5 pt-(--cms-nav-h)">
         <p className="text-sm font-medium tracking-wide opacity-90">
           Professional loss assessors
         </p>

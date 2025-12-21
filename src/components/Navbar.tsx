@@ -43,9 +43,9 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 h-[var(--cms-nav-h)] transition-colors ${shellClass} `}
+      className={`fixed inset-x-0 top-0 z-50 h-(--cms-nav-h) transition-colors ${shellClass} `}
     >
-      <div className="mx-auto flex h-full max-w-[var(--content-width)] items-center justify-between px-5">
+      <div className="mx-auto flex h-full max-w-(--content-width) items-center justify-between px-5">
         <Link
           href="/"
           className="flex items-center gap-2 text-sm font-semibold tracking-tight"
