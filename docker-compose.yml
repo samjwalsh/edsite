@@ -1,22 +1,25 @@
-# Runs on the VPS behind Nginx Proxy Manager. No ports are published on the host;
-# NPM reaches the containers by name over its Docker network.
+# Production stack. Built images come from GHCR (see .github/workflows/publish.yml),
+# so the server only needs this file and a .env, not the source.
 #
-# NPM proxy hosts:
-#   example.com        -> http://edsite:8080
-#   stats.example.com  -> http://edsite-umami:3000
+# Point your reverse proxy at:
+#   example.com        -> http://<server-ip>:${SITE_PORT}
+#   stats.example.com  -> http://<server-ip>:${UMAMI_PORT}
 
 services:
   site:
-    build: .
+    image: ghcr.io/samjwalsh/edsite:latest
     container_name: edsite
     restart: unless-stopped
-    networks: [proxy]
+    ports:
+      - "${SITE_PORT:-8090}:8080"
 
   umami:
     image: ghcr.io/umami-software/umami:latest
     container_name: edsite-umami
     restart: unless-stopped
     init: true
+    ports:
+      - "${UMAMI_PORT:-8091}:3000"
     environment:
       DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD:?set in .env}@umami-db:5432/umami
       APP_SECRET: ${UMAMI_APP_SECRET:?set in .env}
@@ -29,7 +32,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
-    networks: [proxy, internal]
 
   umami-db:
     image: postgres:17-alpine
@@ -40,19 +42,9 @@ services:
       POSTGRES_USER: umami
       POSTGRES_PASSWORD: ${UMAMI_DB_PASSWORD:?set in .env}
     volumes:
-      - umami-db-data:/var/lib/postgresql/data
+      - ${UMAMI_DB_DIR:-./umami-db}:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U umami -d umami"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: [internal]
-
-networks:
-  proxy:
-    external: true
-    name: ${NPM_NETWORK:-npm_default}
-  internal: {}
-
-volumes:
-  umami-db-data:

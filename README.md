@@ -1,6 +1,6 @@
 # edsite
 
-Marketing site for a loss assessor business. Static [Astro](https://astro.build) site, served by nginx in Docker behind Nginx Proxy Manager, with self-hosted [Umami](https://umami.is) analytics.
+Marketing site for a loss assessor business. Static [Astro](https://astro.build) site, served by nginx in Docker, with self-hosted [Umami](https://umami.is) analytics.
 
 ## Editing content
 
@@ -24,35 +24,43 @@ pnpm build     # type-check + build to dist/
 pnpm preview   # serve dist/
 ```
 
-## Deployment (VPS)
+## Deployment
 
-One-time setup:
+Every push to `main` builds a Docker image in GitHub Actions and publishes it as `ghcr.io/samjwalsh/edsite:latest`. The server runs `docker-compose.yml`, which pulls that image, so the server never needs the source code.
 
-1. Point DNS A records for `example.com` and `stats.example.com` at the VPS.
-2. On the VPS:
-   ```sh
-   git clone https://github.com/samjwalsh/edsite.git ~/edsite && cd ~/edsite
-   cp .env.example .env   # fill in secrets (openssl rand -hex 32) and NPM_NETWORK
-   docker compose up -d --build
-   ```
-   `NPM_NETWORK` must be the Docker network Nginx Proxy Manager is on (`docker network ls`).
-3. In Nginx Proxy Manager, add proxy hosts with Let's Encrypt SSL:
-   - `example.com` → `http://edsite:8080`
-   - `stats.example.com` → `http://edsite-umami:3000`
-4. Log in to Umami (default `admin` / `umami`, **change it immediately**), add the website, and put its ID in `site.analytics.websiteId` in `src/site.config.ts`.
-5. Set `site.url` in `src/site.config.ts` to the real domain (used for canonical URLs, sitemap and structured data).
+Hosted on Unraid at home, reached from the internet via Nginx Proxy Manager on the VPS over a WireGuard tunnel (no ports opened on the home router).
 
-Deploying changes:
-
-```sh
-DEPLOY_HOST=user@vps ./deploy.sh
+```
+visitor ─https─▶ VPS (NPM, TLS) ─WireGuard─▶ Unraid :8090 (site) / :8091 (Umami)
 ```
 
-This pushes, then on the VPS pulls and rebuilds only the `site` container.
+### Updating the site
+
+1. Edit content, `git push`.
+2. GitHub Actions builds and publishes a new image (~1 min).
+3. The Unraid user script pulls it within 15 minutes. To update immediately, run the script manually from **Settings → User Scripts**.
+
+Rollback: every image is also tagged `sha-<commit>`. Pin `image: ghcr.io/samjwalsh/edsite:sha-abc1234` in the compose file, or `git revert` and push.
+
+### Unraid setup (one-time)
+
+1. **Compose:** install the _Docker Compose Manager_ plugin. Add a stack named `edsite`, paste in `docker-compose.yml`, and create its `.env` from `.env.example` (set `UMAMI_DB_DIR=/mnt/user/appdata/edsite/umami-db`). Compose Up.
+2. **Auto-update:** install the _User Scripts_ plugin, add a script on a custom schedule `*/15 * * * *`:
+   ```sh
+   #!/bin/bash
+   cd /boot/config/plugins/compose.manager/projects/edsite
+   docker compose pull site --quiet && docker compose up -d site && docker image prune -f
+   ```
+   Only `site` auto-updates. Update Umami/Postgres deliberately (`docker compose pull && docker compose up -d`) after checking release notes and taking a backup.
+3. **Tunnel:** connect Unraid to the VPS with WireGuard. The VPS listens (`wireguard-tools`, UDP port open in the firewall); Unraid dials out (_Settings → VPN Manager_, peer type _Server to server access_, endpoint = VPS IP, persistent keepalive 25s so the tunnel survives home NAT). Nothing is opened on the home router.
+4. **Reverse proxy (VPS NPM),** with Let's Encrypt SSL:
+   - `example.com` → `http://<unraid-wg-ip>:8090`
+   - `stats.example.com` → `http://<unraid-wg-ip>:8091`
+5. **Umami:** log in at `stats.example.com` (default `admin` / `umami`, **change it immediately**), add the website, put its ID in `site.analytics.websiteId` in `src/site.config.ts` and push.
 
 ### Backups
 
-The site is fully rebuildable from git. Only Umami's Postgres volume holds state:
+The site is fully rebuildable from git. Only Umami's Postgres data holds state:
 
 ```sh
 docker exec edsite-umami-db pg_dump -U umami umami | gzip > umami-$(date +%F).sql.gz
