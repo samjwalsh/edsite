@@ -27,8 +27,8 @@ export const site = {
 
   // Umami analytics. Leave websiteId empty to disable tracking.
   analytics: {
-    umamiScript: "https://stats.example.com/script.js",
-    websiteId: "",
+    umamiScript: "https://edsite-stats.samjw.xyz/script.js",
+    websiteId: "30b80135-c5ff-4c39-918c-d0226a349fb0",
   },
 };
 
