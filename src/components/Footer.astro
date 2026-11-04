@@ -1,0 +1,72 @@
+---
+import { getCollection } from "astro:content";
+import { site } from "../site.config";
+
+const services = (await getCollection("services")).sort((a, b) => a.data.order - b.data.order);
+const areas = (await getCollection("areas")).sort((a, b) => a.data.order - b.data.order);
+const { street, locality, region, postalCode } = site.address;
+const address = [street, locality, region, postalCode].filter(Boolean).join(", ");
+---
+
+<footer class="bg-brand-900 pb-24 text-brand-100 md:pb-0">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
+    <div>
+      <p class="text-lg font-bold text-white">{site.name}</p>
+      <p class="mt-2 text-sm">{site.tagline}</p>
+      {site.credentials.length > 0 && (
+        <ul class="mt-4 space-y-1 text-xs">
+          {site.credentials.map((c) => (
+            <li>{c}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    <div>
+      <p class="font-semibold text-white">Contact</p>
+      <ul class="mt-2 space-y-1 text-sm">
+        <li>
+          <a href={site.phoneHref} class="hover:text-white">
+            {site.phone}
+          </a>
+        </li>
+        <li>
+          <a href={`mailto:${site.email}`} class="hover:text-white">
+            {site.email}
+          </a>
+        </li>
+        {address && <li>{address}</li>}
+        <li>{site.hours}</li>
+      </ul>
+    </div>
+
+    <div>
+      <p class="font-semibold text-white">Services</p>
+      <ul class="mt-2 space-y-1 text-sm">
+        {services.map((s) => (
+          <li>
+            <a href={`/services/${s.id}`} class="hover:text-white">
+              {s.data.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <p class="font-semibold text-white">Areas covered</p>
+      <ul class="mt-2 space-y-1 text-sm">
+        {areas.map((a) => (
+          <li>
+            <a href={`/areas/${a.id}`} class="hover:text-white">
+              {a.data.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-white/10 py-4 text-center text-xs">
+    © {new Date().getFullYear()} {site.name}
+  </div>
+</footer>

@@ -1,0 +1,65 @@
+---
+import { Font } from "astro:assets";
+import { site } from "../site.config";
+
+export interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: "website" | "article";
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+}
+
+const { title, description = site.description, image, type = "website", noindex = false, jsonLd = [] } = Astro.props;
+
+const fullTitle = title ? `${title} | ${site.shortName}` : `${site.name} | ${site.tagline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = image ? new URL(image, Astro.site) : undefined;
+
+const { street, locality, region, postalCode, country } = site.address;
+
+// Sitewide LocalBusiness data so Google can tie the site to the business listing.
+const business = {
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "@id": new URL("/#business", Astro.site).href,
+  name: site.name,
+  description: site.description,
+  url: Astro.site?.href,
+  telephone: site.phone,
+  email: site.email,
+  address: {
+    "@type": "PostalAddress",
+    ...(street && { streetAddress: street }),
+    ...(locality && { addressLocality: locality }),
+    ...(region && { addressRegion: region }),
+    ...(postalCode && { postalCode }),
+    addressCountry: country,
+  },
+};
+const { umamiScript, websiteId } = site.analytics;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex" />}
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="sitemap" href="/sitemap-index.xml" />
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+{ogImage && <meta property="og:image" content={ogImage} />}
+<meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
+
+<Font cssVariable="--font-inter" preload />
+
+<script type="application/ld+json" set:html={JSON.stringify([business, ...jsonLd])} />
+{import.meta.env.PROD && websiteId && <script is:inline defer src={umamiScript} data-website-id={websiteId} />}

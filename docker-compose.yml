@@ -1,0 +1,58 @@
+# Runs on the VPS behind Nginx Proxy Manager. No ports are published on the host;
+# NPM reaches the containers by name over its Docker network.
+#
+# NPM proxy hosts:
+#   example.com        -> http://edsite:8080
+#   stats.example.com  -> http://edsite-umami:3000
+
+services:
+  site:
+    build: .
+    container_name: edsite
+    restart: unless-stopped
+    networks: [proxy]
+
+  umami:
+    image: ghcr.io/umami-software/umami:latest
+    container_name: edsite-umami
+    restart: unless-stopped
+    init: true
+    environment:
+      DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD:?set in .env}@umami-db:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET:?set in .env}
+      TWO_FACTOR_ENCRYPTION_KEY: ${UMAMI_2FA_KEY:?set in .env}
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:3000/api/heartbeat"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks: [proxy, internal]
+
+  umami-db:
+    image: postgres:17-alpine
+    container_name: edsite-umami-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${UMAMI_DB_PASSWORD:?set in .env}
+    volumes:
+      - umami-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami -d umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [internal]
+
+networks:
+  proxy:
+    external: true
+    name: ${NPM_NETWORK:-npm_default}
+  internal: {}
+
+volumes:
+  umami-db-data:

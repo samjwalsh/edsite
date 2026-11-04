@@ -1,0 +1,131 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import CallButton from "../components/CallButton.astro";
+import { site } from "../site.config";
+
+const services = (await getCollection("services")).sort((a, b) => a.data.order - b.data.order);
+const areas = (await getCollection("areas")).sort((a, b) => a.data.order - b.data.order);
+const posts = (await getCollection("blog", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const steps = [
+  {
+    title: "Call us",
+    body: "Tell us what happened. We'll advise on immediate steps to protect your property and your claim.",
+  },
+  { title: "We assess the loss", body: "We inspect the damage, gather evidence and prepare a fully documented claim." },
+  { title: "We negotiate", body: "We deal with your insurer and their loss adjuster so you don't have to." },
+  {
+    title: "You get settled",
+    body: "We push for a fair settlement and help get your home or business back to normal.",
+  },
+];
+---
+
+<BaseLayout>
+  <!-- Hero -->
+  <section class="bg-brand-900 text-white">
+    <div class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+      <h1 class="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
+        Insurance claim after a fire, flood or break-in?
+      </h1>
+      <p class="mt-6 max-w-2xl text-lg text-brand-100">{site.tagline}</p>
+      <div class="mt-8 flex flex-wrap gap-4">
+        <CallButton />
+        <a
+          href="/services"
+          class="inline-flex items-center rounded-lg border border-white/30 px-5 py-3 font-semibold hover:bg-white/10"
+        >
+          What we handle
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <h2 class="text-3xl font-bold text-brand-900">Claims we handle</h2>
+    <ul class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {services.map((s) => (
+        <li>
+          <a
+            href={`/services/${s.id}`}
+            class="block h-full rounded-xl border border-slate-200 p-6 transition hover:border-brand-600 hover:shadow-md"
+          >
+            <h3 class="text-lg font-semibold text-brand-900">{s.data.title}</h3>
+            <p class="mt-2 text-sm text-slate-600">{s.data.description}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- How it works -->
+  <section class="bg-brand-50">
+    <div class="mx-auto max-w-6xl px-4 py-16">
+      <h2 class="text-3xl font-bold text-brand-900">How it works</h2>
+      <ol class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {steps.map((step, i) => (
+          <li class="rounded-xl bg-white p-6 shadow-sm">
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
+              {i + 1}
+            </span>
+            <h3 class="mt-4 font-semibold text-brand-900">{step.title}</h3>
+            <p class="mt-2 text-sm text-slate-600">{step.body}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- Areas -->
+  {areas.length > 0 && (
+    <section class="mx-auto max-w-6xl px-4 py-16">
+      <h2 class="text-3xl font-bold text-brand-900">Areas we cover</h2>
+      <ul class="mt-6 flex flex-wrap gap-3">
+        {areas.map((a) => (
+          <li>
+            <a
+              href={`/areas/${a.id}`}
+              class="inline-block rounded-full border border-slate-300 px-4 py-2 text-sm hover:border-brand-600 hover:text-brand-600"
+            >
+              {a.data.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <!-- Latest advice -->
+  {posts.length > 0 && (
+    <section class="border-t border-slate-200">
+      <div class="mx-auto max-w-6xl px-4 py-16">
+        <h2 class="text-3xl font-bold text-brand-900">Claims advice</h2>
+        <ul class="mt-8 grid gap-6 md:grid-cols-3">
+          {posts.map((p) => (
+            <li>
+              <a href={`/blog/${p.id}`} class="group block">
+                <h3 class="font-semibold text-brand-900 group-hover:text-brand-600">{p.data.title}</h3>
+                <p class="mt-2 text-sm text-slate-600">{p.data.description}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <!-- CTA -->
+  <section class="bg-brand-700 text-white">
+    <div class="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-14 md:flex-row md:items-center md:justify-between">
+      <div>
+        <p class="text-2xl font-bold">Talk to a loss assessor today</p>
+        <p class="mt-2 text-brand-100">{site.hours}</p>
+      </div>
+      <CallButton variant="light" />
+    </div>
+  </section>
+</BaseLayout>

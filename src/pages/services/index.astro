@@ -1,0 +1,25 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const services = (await getCollection("services")).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title="Services" description="The types of insurance claim we handle for homeowners and businesses.">
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <h1 class="text-4xl font-bold text-brand-900">Claims we handle</h1>
+    <ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {services.map((s) => (
+        <li>
+          <a
+            href={`/services/${s.id}`}
+            class="block h-full rounded-xl border border-slate-200 p-6 transition hover:border-brand-600 hover:shadow-md"
+          >
+            <h2 class="text-lg font-semibold text-brand-900">{s.data.title}</h2>
+            <p class="mt-2 text-sm text-slate-600">{s.data.description}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>

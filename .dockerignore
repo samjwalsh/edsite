@@ -1,0 +1,8 @@
+node_modules
+dist
+.astro
+.git
+.env
+docker-compose.yml
+deploy.sh
+README.md

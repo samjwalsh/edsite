@@ -1,0 +1,13 @@
+---
+// Lets standalone pages be written in Markdown: `layout: ../layouts/MarkdownPage.astro`.
+import ProseLayout from "./ProseLayout.astro";
+
+interface Props {
+  frontmatter: { title: string; description?: string };
+}
+const { title, description } = Astro.props.frontmatter;
+---
+
+<ProseLayout title={title} description={description} heading={title}>
+  <slot />
+</ProseLayout>

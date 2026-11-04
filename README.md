@@ -1,29 +1,59 @@
-# Create T3 App
+# edsite
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Marketing site for a loss assessor business. Static [Astro](https://astro.build) site, served by nginx in Docker behind Nginx Proxy Manager, with self-hosted [Umami](https://umami.is) analytics.
 
-## What's next? How do I make an app with this?
+## Editing content
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+| What                                                                   | Where                                               |
+| ---------------------------------------------------------------------- | --------------------------------------------------- |
+| Business name, phone, email, address, hours, credentials, analytics ID | `src/site.config.ts`                                |
+| Service pages (`/services/*`)                                          | `src/content/services/*.md`                         |
+| Area pages (`/areas/*`)                                                | `src/content/areas/*.md`                            |
+| Blog posts (`/blog/*`)                                                 | `src/content/blog/*.md` (set `draft: true` to hide) |
+| About page                                                             | `src/pages/about.md`                                |
+| Brand colours                                                          | `src/styles/global.css` (`@theme`)                  |
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+The file name becomes the URL slug, e.g. `src/content/services/fire.md` → `/services/fire`. Frontmatter is validated by `src/content.config.ts`, so a typo fails the build instead of breaking the page. Quote frontmatter strings that contain a `:`.
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Development
 
-## Learn More
+```sh
+pnpm install
+pnpm dev       # http://localhost:4321
+pnpm build     # type-check + build to dist/
+pnpm preview   # serve dist/
+```
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## Deployment (VPS)
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+One-time setup:
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+1. Point DNS A records for `example.com` and `stats.example.com` at the VPS.
+2. On the VPS:
+   ```sh
+   git clone https://github.com/samjwalsh/edsite.git ~/edsite && cd ~/edsite
+   cp .env.example .env   # fill in secrets (openssl rand -hex 32) and NPM_NETWORK
+   docker compose up -d --build
+   ```
+   `NPM_NETWORK` must be the Docker network Nginx Proxy Manager is on (`docker network ls`).
+3. In Nginx Proxy Manager, add proxy hosts with Let's Encrypt SSL:
+   - `example.com` → `http://edsite:8080`
+   - `stats.example.com` → `http://edsite-umami:3000`
+4. Log in to Umami (default `admin` / `umami`, **change it immediately**), add the website, and put its ID in `site.analytics.websiteId` in `src/site.config.ts`.
+5. Set `site.url` in `src/site.config.ts` to the real domain (used for canonical URLs, sitemap and structured data).
 
-## How do I deploy this?
+Deploying changes:
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+```sh
+DEPLOY_HOST=user@vps ./deploy.sh
+```
+
+This pushes, then on the VPS pulls and rebuilds only the `site` container.
+
+### Backups
+
+The site is fully rebuildable from git. Only Umami's Postgres volume holds state:
+
+```sh
+docker exec edsite-umami-db pg_dump -U umami umami | gzip > umami-$(date +%F).sql.gz
+```

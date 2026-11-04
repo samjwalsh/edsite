@@ -1,0 +1,18 @@
+---
+import { type CollectionEntry, getCollection, render } from "astro:content";
+import ProseLayout from "../../layouts/ProseLayout.astro";
+
+export async function getStaticPaths() {
+  const areas = await getCollection("areas");
+  return areas.map((area) => ({ params: { slug: area.id }, props: area }));
+}
+type Props = CollectionEntry<"areas">;
+
+const area = Astro.props;
+const { Content } = await render(area);
+const heading = `Loss assessors in ${area.data.title}`;
+---
+
+<ProseLayout title={heading} description={area.data.description} heading={heading} eyebrow="Areas we cover">
+  <Content />
+</ProseLayout>

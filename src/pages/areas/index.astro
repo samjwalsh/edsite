@@ -1,0 +1,25 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const areas = (await getCollection("areas")).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title="Areas we cover" description="Locations where we provide loss assessing services.">
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <h1 class="text-4xl font-bold text-brand-900">Areas we cover</h1>
+    <ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {areas.map((a) => (
+        <li>
+          <a
+            href={`/areas/${a.id}`}
+            class="block h-full rounded-xl border border-slate-200 p-6 transition hover:border-brand-600 hover:shadow-md"
+          >
+            <h2 class="text-lg font-semibold text-brand-900">Loss assessors in {a.data.title}</h2>
+            <p class="mt-2 text-sm text-slate-600">{a.data.description}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>

@@ -1,0 +1,24 @@
+---
+import { site } from "../site.config";
+
+interface Props {
+  variant?: "primary" | "light";
+  class?: string;
+}
+const { variant = "primary", class: className } = Astro.props;
+---
+
+<a
+  href={site.phoneHref}
+  class:list={[
+    "inline-flex items-center gap-2 rounded-lg px-5 py-3 font-semibold shadow-sm transition-colors",
+    variant === "primary" && "bg-accent-500 text-white hover:bg-accent-600",
+    variant === "light" && "bg-white text-brand-900 hover:bg-brand-50",
+    className,
+  ]}
+>
+  <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"></path>
+  </svg>
+  <span>Call {site.phone}</span>
+</a>

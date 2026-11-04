@@ -1,0 +1,35 @@
+---
+import { type CollectionEntry, getCollection, render } from "astro:content";
+import ProseLayout from "../../layouts/ProseLayout.astro";
+import { site } from "../../site.config";
+
+export async function getStaticPaths() {
+  const services = await getCollection("services");
+  return services.map((service) => ({ params: { slug: service.id }, props: service }));
+}
+type Props = CollectionEntry<"services">;
+
+const service = Astro.props;
+const { Content } = await render(service);
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: service.data.title,
+    description: service.data.description,
+    serviceType: "Loss assessment",
+    provider: { "@id": new URL("/#business", Astro.site).href },
+  },
+];
+---
+
+<ProseLayout
+  title={service.data.title}
+  description={service.data.description}
+  heading={service.data.title}
+  eyebrow={site.shortName}
+  jsonLd={jsonLd}
+>
+  <Content />
+</ProseLayout>
